@@ -1,12 +1,23 @@
 from datetime import datetime, timedelta, timezone
 
 from jose import JWTError, jwt
+from pwdlib import PasswordHash
 
 from app.database import settings
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
+
+password_hash = PasswordHash.recommended()
+
+
+def hash_password(password: str) -> str:
+    return password_hash.hash(password)
+
+
+def verify_password(password: str, password_hash_value: str) -> bool:
+    return password_hash.verify(password, password_hash_value)
 
 
 def create_access_token(data: dict) -> str:
@@ -16,7 +27,11 @@ def create_access_token(data: dict) -> str:
         minutes=ACCESS_TOKEN_EXPIRE_MINUTES
     )
 
-    return jwt.encode(payload, settings.secret_key, algorithm=ALGORITHM)
+    return jwt.encode(
+        payload,
+        settings.secret_key,
+        algorithm=ALGORITHM,
+    )
 
 
 def create_refresh_token(data: dict) -> str:
@@ -26,7 +41,11 @@ def create_refresh_token(data: dict) -> str:
         days=REFRESH_TOKEN_EXPIRE_DAYS
     )
 
-    return jwt.encode(payload, settings.secret_key, algorithm=ALGORITHM)
+    return jwt.encode(
+        payload,
+        settings.secret_key,
+        algorithm=ALGORITHM,
+    )
 
 
 def decode_access_token(token: str) -> dict:
