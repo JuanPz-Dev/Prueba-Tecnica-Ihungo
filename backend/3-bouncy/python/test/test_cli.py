@@ -1,27 +1,25 @@
-import argparse
-
-from python.bouncy import least_number_with_bouncy_ratio
 from cli import main
 
-def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Calcula el primer número con un porcentaje exacto de números bouncy."
-    )
 
-    parser.add_argument(
-        "percent",
-        type=int,
-        help="Porcentaje de números bouncy entre 1 y 99.",
-    )
+def test_cli_returns_538(capsys):
+    main(["50"])
 
-    args = parser.parse_args()
+    captured = capsys.readouterr()
 
-    try:
-        result = least_number_with_bouncy_ratio(args.percent)
-        print(result)
-    except ValueError as error:
-        print(f"Error: {error}")
+    assert captured.out.strip() == "538"
 
 
-if __name__ == "__main__":
-    main()
+def test_cli_returns_21780(capsys):
+    main(["90"])
+
+    captured = capsys.readouterr()
+
+    assert captured.out.strip() == "21780"
+
+
+def test_cli_rejects_invalid_percent(capsys):
+    main(["100"])
+
+    captured = capsys.readouterr()
+
+    assert "entre 1 y 99" in captured.out
