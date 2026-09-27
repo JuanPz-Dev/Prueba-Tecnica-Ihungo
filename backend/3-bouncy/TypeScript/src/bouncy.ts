@@ -1,4 +1,4 @@
-export function leastNumberWithBouncyRatio(percent: number): number {
+export function least_number_with_bouncy_ratio(percent: number): number {
   if (percent < 1 || percent > 99 || !Number.isInteger(percent)) {
     throw new Error("El porcentaje debe ser un entero entre 1 y 99.");
   }
