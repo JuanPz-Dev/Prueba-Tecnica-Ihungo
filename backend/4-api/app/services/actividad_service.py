@@ -53,3 +53,14 @@ def crear_actividad(
     )
 
     return actividad_repository.guardar(db, actividad)
+
+def listar_actividades(
+    db: Session,
+    desde=None,
+    hasta=None,
+) -> list[Actividad]:
+    return actividad_repository.listar(
+        db,
+        desde,
+        hasta,
+    )

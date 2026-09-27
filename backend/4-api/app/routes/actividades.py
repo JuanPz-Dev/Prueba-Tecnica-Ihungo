@@ -1,14 +1,35 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.actividad import ActividadCreate, ActividadResponse
-from app.services.actividad_service import crear_actividad
+from app.services.actividad_service import (
+    crear_actividad,
+    listar_actividades,
+)
 
 router = APIRouter(
     prefix="/api/actividades",
     tags=["Actividades"],
 )
+
+
+@router.get(
+    "/",
+    response_model=list[ActividadResponse],
+)
+def listar(
+    desde: datetime | None = None,
+    hasta: datetime | None = None,
+    db: Session = Depends(get_db),
+):
+    return listar_actividades(
+        db,
+        desde,
+        hasta,
+    )
 
 
 @router.post(

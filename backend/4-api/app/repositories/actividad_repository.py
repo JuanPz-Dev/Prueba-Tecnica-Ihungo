@@ -26,3 +26,24 @@ def existe_solapamiento(
     )
 
     return actividad is not None
+
+def listar(
+    db: Session,
+    desde=None,
+    hasta=None,
+) -> list[Actividad]:
+    consulta = select(Actividad)
+
+    if desde is not None:
+        consulta = consulta.where(
+            Actividad.fecha_inicio >= desde
+        )
+
+    if hasta is not None:
+        consulta = consulta.where(
+            Actividad.fecha_fin <= hasta
+        )
+
+    consulta = consulta.order_by(Actividad.fecha_inicio)
+
+    return list(db.scalars(consulta))
