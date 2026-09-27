@@ -42,6 +42,16 @@ def client():
         rol="ADMIN",
     )
 
+    asociado = Usuario(
+        identificacion="654321",
+        nombre="Asociado",
+        apellidos="Prueba",
+        email="asociado@test.com",
+        password_hash=hash_password("123456"),
+        ciudad="Cartagena",
+        rol="ASOCIADO",
+    )
+
     db.add(usuario)
     db.commit()
 
