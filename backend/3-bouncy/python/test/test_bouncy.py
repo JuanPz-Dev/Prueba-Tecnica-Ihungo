@@ -1,6 +1,6 @@
 import pytest
 
-from python.bouncy import least_number_with_bouncy_ratio
+from bouncy import least_number_with_bouncy_ratio
 
 # El 50% de los números son bouncy.
 # El primer número que alcanza exactamente esa proporción es 538.
