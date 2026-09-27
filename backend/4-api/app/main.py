@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.routes.auth import router as auth_router
+from app.routes.asociados import router as asociados_router
 
 app = FastAPI(
     title="API de asignación de actividades",
@@ -8,6 +9,7 @@ app = FastAPI(
 )
 
 app.include_router(auth_router)
+app.include_router(asociados_router)
 
 
 @app.get("/api/health/")
