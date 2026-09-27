@@ -10,6 +10,12 @@ class ActividadCreate(BaseModel):
     fecha_fin: datetime
     asociado_id: int
 
+class ActividadUpdate(BaseModel):
+    tipo_actividad: str | None = None
+    descripcion: str | None = None
+    fecha_inicio: datetime | None = None
+    fecha_fin: datetime | None = None
+    asociado_id: int | None = None
 
 class ActividadResponse(BaseModel):
     id: int

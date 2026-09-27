@@ -4,8 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.schemas.actividad import ActividadCreate, ActividadResponse
+from app.schemas.actividad import (
+    ActividadCreate,
+    ActividadResponse,
+    ActividadUpdate,
+)
 from app.services.actividad_service import (
+    actualizar_actividad,
     crear_actividad,
     listar_actividades,
 )
@@ -51,6 +56,45 @@ def registrar_actividad(
             asociado_id=datos.asociado_id,
             creador_id=1,
         )
+    except ValueError as exc:
+        mensaje = str(exc)
+
+        if "horario" in mensaje:
+            raise HTTPException(
+                status_code=409,
+                detail=mensaje,
+            ) from exc
+
+        raise HTTPException(
+            status_code=400,
+            detail=mensaje,
+        ) from exc
+
+
+@router.patch(
+    "/{actividad_id}/",
+    response_model=ActividadResponse,
+)
+def modificar_actividad(
+    actividad_id: int,
+    datos: ActividadUpdate,
+    db: Session = Depends(get_db),
+):
+    try:
+        return actualizar_actividad(
+            db=db,
+            actividad_id=actividad_id,
+            tipo_actividad=datos.tipo_actividad,
+            descripcion=datos.descripcion,
+            fecha_inicio=datos.fecha_inicio,
+            fecha_fin=datos.fecha_fin,
+            asociado_id=datos.asociado_id,
+        )
+    except LookupError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
+        ) from exc
     except ValueError as exc:
         mensaje = str(exc)
 

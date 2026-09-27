@@ -64,3 +64,71 @@ def listar_actividades(
         desde,
         hasta,
     )
+
+def actualizar_actividad(
+    db: Session,
+    actividad_id: int,
+    tipo_actividad: str | None = None,
+    descripcion: str | None = None,
+    fecha_inicio: datetime | None = None,
+    fecha_fin: datetime | None = None,
+    asociado_id: int | None = None,
+) -> Actividad:
+    actividad = actividad_repository.buscar_por_id(
+        db,
+        actividad_id,
+    )
+
+    if actividad is None:
+        raise LookupError("La actividad no existe.")
+
+    nuevo_inicio = (
+        fecha_inicio
+        if fecha_inicio is not None
+        else actividad.fecha_inicio
+    )
+
+    nuevo_fin = (
+        fecha_fin
+        if fecha_fin is not None
+        else actividad.fecha_fin
+    )
+
+    validar_fechas(nuevo_inicio, nuevo_fin)
+
+    nuevo_asociado = (
+        asociado_id
+        if asociado_id is not None
+        else actividad.asociado_id
+    )
+
+    if actividad_repository.existe_solapamiento(
+        db,
+        nuevo_asociado,
+        nuevo_inicio,
+        nuevo_fin,
+        excluir_id=actividad_id,
+    ):
+        raise ValueError(
+            "El asociado ya tiene una actividad en ese horario."
+        )
+
+    if tipo_actividad is not None:
+        actividad.tipo_actividad = tipo_actividad
+
+    if descripcion is not None:
+        actividad.descripcion = descripcion
+
+    if fecha_inicio is not None:
+        actividad.fecha_inicio = fecha_inicio
+
+    if fecha_fin is not None:
+        actividad.fecha_fin = fecha_fin
+
+    if asociado_id is not None:
+        actividad.asociado_id = asociado_id
+
+    return actividad_repository.actualizar(
+        db,
+        actividad,
+    )
