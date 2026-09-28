@@ -1,24 +1,46 @@
 from datetime import datetime, timedelta
 
+def obtener_token_admin(client):
+    response = client.post(
+        "/api/auth/token/",
+        json={
+            "email": "admin@test.com",
+            "password": "123456",
+        },
+    )
+
+    assert response.status_code == 200
+
+    return response.json()["access"]
 
 def test_listar_actividades(client):
+    token = obtener_token_admin(client)
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+
     inicio = datetime.now() + timedelta(days=1)
     fin = inicio + timedelta(hours=2)
 
     crear = client.post(
         "/api/actividades/",
+        headers=headers,
         json={
             "tipo_actividad": "Visita técnica",
             "descripcion": "Actividad de prueba",
             "fecha_inicio": inicio.isoformat(),
             "fecha_fin": fin.isoformat(),
-            "asociado_id": 1,
+            "asociado_id": 2,
         },
     )
 
     assert crear.status_code == 201
 
-    response = client.get("/api/actividades/")
+    response = client.get(
+        "/api/actividades/",
+        headers=headers,
+    )
 
     assert response.status_code == 200
     assert isinstance(response.json(), list)
@@ -26,16 +48,25 @@ def test_listar_actividades(client):
 
 
 def test_filtrar_actividades_por_rango(client):
+    token = obtener_token_admin(client)
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+
     base = datetime.now() + timedelta(days=2)
 
     primera = client.post(
         "/api/actividades/",
+        headers=headers,
         json={
             "tipo_actividad": "Actividad dentro",
             "descripcion": None,
             "fecha_inicio": base.isoformat(),
-            "fecha_fin": (base + timedelta(hours=1)).isoformat(),
-            "asociado_id": 1,
+            "fecha_fin": (
+                base + timedelta(hours=1)
+            ).isoformat(),
+            "asociado_id": 2,
         },
     )
 
@@ -45,12 +76,15 @@ def test_filtrar_actividades_por_rango(client):
 
     segunda = client.post(
         "/api/actividades/",
+        headers=headers,
         json={
             "tipo_actividad": "Actividad fuera",
             "descripcion": None,
             "fecha_inicio": fuera.isoformat(),
-            "fecha_fin": (fuera + timedelta(hours=1)).isoformat(),
-            "asociado_id": 1,
+            "fecha_fin": (
+                fuera + timedelta(hours=1)
+            ).isoformat(),
+            "asociado_id": 2,
         },
     )
 
@@ -61,6 +95,7 @@ def test_filtrar_actividades_por_rango(client):
 
     response = client.get(
         "/api/actividades/",
+        headers=headers,
         params={
             "desde": desde.isoformat(),
             "hasta": hasta.isoformat(),

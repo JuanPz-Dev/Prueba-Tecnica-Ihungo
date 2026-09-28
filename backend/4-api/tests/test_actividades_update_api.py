@@ -1,21 +1,41 @@
 from datetime import datetime, timedelta
 
+
+def obtener_token_admin(client):
+    response = client.post(
+        "/api/auth/token/",
+        json={
+            "email": "admin@test.com",
+            "password": "123456",
+        },
+    )
+    assert response.status_code == 200
+    return response.json()["access"]
+
 def test_actualizar_actividad(client):
+    token = obtener_token_admin(client)
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+
     inicio = datetime.now() + timedelta(days=1)
     fin = inicio + timedelta(hours=2)
 
     crear = client.post(
         "/api/actividades/",
+        headers=headers,
         json={
             "tipo_actividad": "Visita técnica",
             "descripcion": "Actividad inicial",
             "fecha_inicio": inicio.isoformat(),
             "fecha_fin": fin.isoformat(),
-            "asociado_id": 1,
+            "asociado_id": 2,
         },
     )
 
     assert crear.status_code == 201
+
     actividad_id = crear.json()["id"]
 
     nuevo_inicio = inicio + timedelta(hours=3)
@@ -23,6 +43,7 @@ def test_actualizar_actividad(client):
 
     response = client.patch(
         f"/api/actividades/{actividad_id}/",
+        headers=headers,
         json={
             "fecha_inicio": nuevo_inicio.isoformat(),
             "fecha_fin": nuevo_fin.isoformat(),
@@ -39,25 +60,34 @@ def test_actualizar_actividad(client):
 
 
 def test_actualizar_actividad_rechaza_fecha_invalida(client):
+    token = obtener_token_admin(client)
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+
     inicio = datetime.now() + timedelta(days=1)
     fin = inicio + timedelta(hours=2)
 
     crear = client.post(
         "/api/actividades/",
+        headers=headers,
         json={
             "tipo_actividad": "Visita técnica",
             "descripcion": None,
             "fecha_inicio": inicio.isoformat(),
             "fecha_fin": fin.isoformat(),
-            "asociado_id": 1,
+            "asociado_id": 2,
         },
     )
 
     assert crear.status_code == 201
+
     actividad_id = crear.json()["id"]
 
     response = client.patch(
         f"/api/actividades/{actividad_id}/",
+        headers=headers,
         json={
             "fecha_inicio": fin.isoformat(),
             "fecha_fin": inicio.isoformat(),
@@ -66,9 +96,17 @@ def test_actualizar_actividad_rechaza_fecha_invalida(client):
 
     assert response.status_code == 400
 
+
 def test_actualizar_actividad_inexistente(client):
+    token = obtener_token_admin(client)
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+
     response = client.patch(
         "/api/actividades/9999/",
+        headers=headers,
         json={
             "tipo_actividad": "Actividad nueva",
         },
@@ -76,17 +114,27 @@ def test_actualizar_actividad_inexistente(client):
 
     assert response.status_code == 404
 
+
 def test_reprogramar_actividad_rechaza_solapamiento(client):
+    token = obtener_token_admin(client)
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+    }
+
     base = datetime.now() + timedelta(days=3)
 
     primera = client.post(
         "/api/actividades/",
+        headers=headers,
         json={
             "tipo_actividad": "Primera actividad",
             "descripcion": None,
             "fecha_inicio": base.isoformat(),
-            "fecha_fin": (base + timedelta(hours=2)).isoformat(),
-            "asociado_id": 1,
+            "fecha_fin": (
+                base + timedelta(hours=2)
+            ).isoformat(),
+            "asociado_id": 2,
         },
     )
 
@@ -94,6 +142,7 @@ def test_reprogramar_actividad_rechaza_solapamiento(client):
 
     segunda = client.post(
         "/api/actividades/",
+        headers=headers,
         json={
             "tipo_actividad": "Segunda actividad",
             "descripcion": None,
@@ -103,7 +152,7 @@ def test_reprogramar_actividad_rechaza_solapamiento(client):
             "fecha_fin": (
                 base + timedelta(hours=5)
             ).isoformat(),
-            "asociado_id": 1,
+            "asociado_id": 2,
         },
     )
 
@@ -113,6 +162,7 @@ def test_reprogramar_actividad_rechaza_solapamiento(client):
 
     response = client.patch(
         f"/api/actividades/{segunda_id}/",
+        headers=headers,
         json={
             "fecha_inicio": (
                 base + timedelta(hours=1)
