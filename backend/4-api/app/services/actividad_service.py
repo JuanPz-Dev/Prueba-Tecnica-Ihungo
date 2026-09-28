@@ -132,3 +132,18 @@ def actualizar_actividad(
         db,
         actividad,
     )
+
+def eliminar_actividad(
+    db: Session,
+    actividad_id: int,
+) -> None:
+    actividad = actividad_repository.buscar_por_id(
+        db,
+        actividad_id,
+    )
+    if actividad is None:
+        raise LookupError("La actividad no existe.")
+    actividad_repository.eliminar(
+        db,
+        actividad,
+    )

@@ -15,6 +15,8 @@ from app.services.actividad_service import (
     listar_actividades,
 )
 
+from app.services.actividad_service import (actualizar_actividad,crear_actividad,listar_actividades,eliminar_actividad)
+
 router = APIRouter(
     prefix="/api/actividades",
     tags=["Actividades"],
@@ -107,4 +109,23 @@ def modificar_actividad(
         raise HTTPException(
             status_code=400,
             detail=mensaje,
+        ) from exc
+
+@router.delete(
+    "/{actividad_id}/",
+    status_code=204,
+)
+def eliminar(
+    actividad_id: int,
+    db: Session = Depends(get_db),
+):
+    try:
+        eliminar_actividad(
+            db,
+            actividad_id,
+        )
+    except LookupError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail=str(exc),
         ) from exc

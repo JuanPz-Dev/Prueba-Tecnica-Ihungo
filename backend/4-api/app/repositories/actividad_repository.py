@@ -71,3 +71,10 @@ def actualizar(
     db.commit()
     db.refresh(actividad)
     return actividad
+
+def eliminar(
+    db: Session,
+    actividad: Actividad,
+) -> None:
+    db.delete(actividad)
+    db.commit()
