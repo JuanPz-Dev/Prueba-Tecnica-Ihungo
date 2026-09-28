@@ -121,3 +121,121 @@ def test_asociado_no_puede_ver_actividad_de_otro_asociado(client):
     assert response.status_code == 200
     actividades = response.json()
     assert len(actividades) == 0
+
+def test_asociado_puede_actualizar_actividad_futura(client):
+    token_admin = obtener_token(
+        client,
+        "admin@test.com",
+        "123456",
+    )
+
+    crear = crear_actividad(
+        client,
+        token_admin,
+        asociado_id=2,
+        dias=5,
+    )
+
+    assert crear.status_code == 201
+
+    actividad_id = crear.json()["id"]
+
+    token_asociado = obtener_token(
+        client,
+        "asociado@test.com",
+        "123456",
+    )
+
+    response = client.patch(
+        f"/api/actividades/{actividad_id}/",
+        headers={
+            "Authorization": f"Bearer {token_asociado}",
+        },
+        json={
+            "descripcion": "Actualizada por asociado",
+        },
+    )
+
+    assert response.status_code == 200
+
+def test_asociado_no_puede_actualizar_actividad_pasada(client):
+    token_admin = obtener_token(
+        client,
+        "admin@test.com",
+        "123456",
+    )
+
+    inicio = datetime.now() - timedelta(days=5)
+    fin = inicio + timedelta(hours=2)
+
+    crear = client.post(
+        "/api/actividades/",
+        headers={
+            "Authorization": f"Bearer {token_admin}",
+        },
+        json={
+            "tipo_actividad": "Actividad pasada",
+            "descripcion": None,
+            "fecha_inicio": inicio.isoformat(),
+            "fecha_fin": fin.isoformat(),
+            "asociado_id": 2,
+        },
+    )
+    assert crear.status_code == 201
+    actividad_id = crear.json()["id"]
+    token_asociado = obtener_token(
+        client,
+        "asociado@test.com",
+        "123456",
+    )
+    response = client.patch(
+        f"/api/actividades/{actividad_id}/",
+        headers={
+            "Authorization": f"Bearer {token_asociado}",
+        },
+        json={
+            "descripcion": "Intento de cambio",
+        },
+    )
+    assert response.status_code == 403
+
+
+def test_asociado_no_puede_eliminar_actividad_pasada(client):
+    token_admin = obtener_token(
+        client,
+        "admin@test.com",
+        "123456",
+    )
+
+    inicio = datetime.now() - timedelta(days=5)
+    fin = inicio + timedelta(hours=2)
+
+    crear = client.post(
+        "/api/actividades/",
+        headers={
+            "Authorization": f"Bearer {token_admin}",
+        },
+        json={
+            "tipo_actividad": "Actividad pasada",
+            "descripcion": None,
+            "fecha_inicio": inicio.isoformat(),
+            "fecha_fin": fin.isoformat(),
+            "asociado_id": 2,
+        },
+    )
+
+    assert crear.status_code == 201
+    actividad_id = crear.json()["id"]
+    token_asociado = obtener_token(
+        client,
+        "asociado@test.com",
+        "123456",
+    )
+
+    response = client.delete(
+        f"/api/actividades/{actividad_id}/",
+        headers={
+            "Authorization": f"Bearer {token_asociado}",
+        },
+    )
+    assert response.status_code == 403

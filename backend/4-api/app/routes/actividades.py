@@ -23,16 +23,30 @@ router = APIRouter(
 )
 
 
-@router.get("/",response_model=list[ActividadResponse],)
+@router.get(
+    "/",
+    response_model=list[ActividadResponse],
+)
 def listar(
     desde: datetime | None = None,
     hasta: datetime | None = None,
     usuario_actual: dict = Depends(obtener_usuario_actual),
     db: Session = Depends(get_db),
 ):
-    return listar_actividades(db,desde,hasta,int(usuario_actual["sub"]),usuario_actual["rol"],)
+    return listar_actividades(
+        db,
+        desde,
+        hasta,
+        int(usuario_actual["sub"]),
+        usuario_actual["rol"],
+    )
 
-@router.post("/",response_model=ActividadResponse,status_code=201,)
+
+@router.post(
+    "/",
+    response_model=ActividadResponse,
+    status_code=201,
+)
 def registrar_actividad(
     datos: ActividadCreate,
     usuario_actual: dict = Depends(obtener_usuario_actual),
@@ -70,12 +84,15 @@ def registrar_actividad(
 def modificar_actividad(
     actividad_id: int,
     datos: ActividadUpdate,
+    usuario_actual: dict = Depends(obtener_usuario_actual),
     db: Session = Depends(get_db),
 ):
     try:
         return actualizar_actividad(
             db=db,
             actividad_id=actividad_id,
+            usuario_id=int(usuario_actual["sub"]),
+            rol=usuario_actual["rol"],
             tipo_actividad=datos.tipo_actividad,
             descripcion=datos.descripcion,
             fecha_inicio=datos.fecha_inicio,
@@ -85,6 +102,11 @@ def modificar_actividad(
     except LookupError as exc:
         raise HTTPException(
             status_code=404,
+            detail=str(exc),
+        ) from exc
+    except PermissionError as exc:
+        raise HTTPException(
+            status_code=403,
             detail=str(exc),
         ) from exc
     except ValueError as exc:
@@ -108,15 +130,23 @@ def modificar_actividad(
 )
 def eliminar(
     actividad_id: int,
+    usuario_actual: dict = Depends(obtener_usuario_actual),
     db: Session = Depends(get_db),
 ):
     try:
         eliminar_actividad(
             db,
             actividad_id,
+            int(usuario_actual["sub"]),
+            usuario_actual["rol"],
         )
     except LookupError as exc:
         raise HTTPException(
             status_code=404,
+            detail=str(exc),
+        ) from exc
+    except PermissionError as exc:
+        raise HTTPException(
+            status_code=403,
             detail=str(exc),
         ) from exc

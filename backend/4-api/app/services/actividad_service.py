@@ -65,9 +65,29 @@ def listar_actividades(
         db,desde,hasta,usuario_id,rol,
     )
 
+def validar_permiso_actividad(
+    actividad: Actividad,
+    usuario_id: int,
+    rol: str,
+) -> None:
+    if rol == "ADMIN":
+        return
+
+    if actividad.asociado_id != usuario_id:
+        raise PermissionError(
+            "No tiene permiso para modificar esta actividad."
+        )
+
+    if actividad.fecha_inicio < datetime.now():
+        raise PermissionError(
+            "Las actividades pasadas son solo de lectura."
+        )
+
 def actualizar_actividad(
     db: Session,
     actividad_id: int,
+    usuario_id: int,
+    rol: str,
     tipo_actividad: str | None = None,
     descripcion: str | None = None,
     fecha_inicio: datetime | None = None,
@@ -82,6 +102,12 @@ def actualizar_actividad(
     if actividad is None:
         raise LookupError("La actividad no existe.")
 
+    validar_permiso_actividad(
+        actividad,
+        usuario_id,
+        rol,
+    )
+
     nuevo_inicio = (
         fecha_inicio
         if fecha_inicio is not None
@@ -94,7 +120,10 @@ def actualizar_actividad(
         else actividad.fecha_fin
     )
 
-    validar_fechas(nuevo_inicio, nuevo_fin)
+    validar_fechas(
+        nuevo_inicio,
+        nuevo_fin,
+    )
 
     nuevo_asociado = (
         asociado_id
@@ -136,6 +165,8 @@ def actualizar_actividad(
 def eliminar_actividad(
     db: Session,
     actividad_id: int,
+    usuario_id: int,
+    rol: str,
 ) -> None:
     actividad = actividad_repository.buscar_por_id(
         db,
@@ -143,6 +174,11 @@ def eliminar_actividad(
     )
     if actividad is None:
         raise LookupError("La actividad no existe.")
+    validar_permiso_actividad(
+        actividad,
+        usuario_id,
+        rol,
+    )
     actividad_repository.eliminar(
         db,
         actividad,
