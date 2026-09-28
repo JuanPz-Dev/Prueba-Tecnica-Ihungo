@@ -58,11 +58,11 @@ def listar_actividades(
     db: Session,
     desde=None,
     hasta=None,
+    usuario_id: int | None = None,
+    rol: str | None = None,
 ) -> list[Actividad]:
     return actividad_repository.listar(
-        db,
-        desde,
-        hasta,
+        db,desde,hasta,usuario_id,rol,
     )
 
 def actualizar_actividad(

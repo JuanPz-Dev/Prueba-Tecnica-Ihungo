@@ -37,6 +37,8 @@ def listar(
     db: Session,
     desde=None,
     hasta=None,
+    usuario_id: int | None = None,
+    rol: str | None = None,
 ) -> list[Actividad]:
     consulta = select(Actividad)
 
@@ -44,14 +46,18 @@ def listar(
         consulta = consulta.where(
             Actividad.fecha_inicio >= desde
         )
-
     if hasta is not None:
         consulta = consulta.where(
             Actividad.fecha_fin <= hasta
         )
-
-    consulta = consulta.order_by(Actividad.fecha_inicio)
-
+    if rol != "ADMIN" and usuario_id is not None:
+        consulta = consulta.where(
+            (Actividad.asociado_id == usuario_id)
+            | (Actividad.creador_id == usuario_id)
+        )
+    consulta = consulta.order_by(
+        Actividad.fecha_inicio
+    )
     return list(db.scalars(consulta))
 
 def buscar_por_id(
