@@ -47,3 +47,30 @@ def test_refresh_devuelve_nuevo_access_token(client):
 
     assert response.status_code == 200
     assert "access" in response.json()
+
+def test_token_identifica_usuario_actual(client):
+    login = client.post(
+        "/api/auth/token/",
+        json={
+            "email": "admin@test.com",
+            "password": "123456",
+        },
+    )
+
+    assert login.status_code == 200
+
+    token = login.json()["access"]
+
+    response = client.get(
+        "/api/usuarios/me/",
+        headers={
+            "Authorization": f"Bearer {token}",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["email"] == "admin@test.com"
+    assert data["rol"] == "ADMIN"

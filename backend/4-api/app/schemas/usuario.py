@@ -20,3 +20,14 @@ class AsociadoResponse(BaseModel):
     rol: str
 
     model_config = {"from_attributes": True}
+
+class UsuarioResponse(BaseModel):
+    id: int
+    identificacion: str
+    nombre: str
+    apellidos: str
+    email: EmailStr
+    ciudad: str
+    rol: str
+
+    model_config = {"from_attributes": True}

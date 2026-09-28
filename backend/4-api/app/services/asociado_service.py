@@ -38,3 +38,12 @@ def crear_asociado(
     )
 
     return asociado_repository.guardar(db, usuario)
+
+def obtener_usuario_por_email(
+    db: Session,
+    email: str,
+) -> Usuario | None:
+    return asociado_repository.buscar_por_email(
+        db,
+        email,
+    )
